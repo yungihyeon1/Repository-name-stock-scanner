@@ -2742,6 +2742,7 @@ def run_full_scan(stocks):
         df = fetch(code)
         if df is not None: cached_data[code] = {"name": name, "df": df}
     dl_bar.empty(); dl_text.empty()
+    st.info(f"📊 데이터 수집 완료: {len(cached_data)}개 종목 / 전체 {total}개")
 
     phase, phase_icon = market_phase()
     if phase == "하락장": adjusted_min_score = 90; st.warning(f"{phase_icon} 하락장 감지 — 최소 점수 90점으로 상향")
