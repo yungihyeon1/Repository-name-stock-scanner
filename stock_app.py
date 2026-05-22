@@ -2153,21 +2153,12 @@ def get_stocks(market="KOSDAQ"):
         except Exception:
             pass
 
-    # 방법 2: pykrx 백업
+    # 방법 2: 로컬 JSON 파일 (해외 서버용 백업)
     try:
-        from pykrx import stock
-        import datetime
-        today = datetime.datetime.now().strftime("%Y%m%d")
-        if market == "KOSDAQ":
-            codes = stock.get_market_ticker_list(today, market="KOSDAQ")
-        else:
-            codes = stock.get_market_ticker_list(today, market="KOSPI")
-        rows = []
-        for c in codes:
-            name = stock.get_market_ticker_name(c)
-            rows.append({"Code": c, "Name": name})
-        if rows:
-            return pd.DataFrame(rows)
+        with open("stock_list.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if market in data:
+            return pd.DataFrame(data[market])
     except Exception:
         pass
 
@@ -4227,7 +4218,7 @@ with st.sidebar:
     st.sidebar.markdown(f"**🧠 Gemini AI:** {'🟢 연결됨' if GEMINI_OK else '⚪ 미연결'}")
     st.divider()
 
-    menu = st.radio("", [
+    menu = st.radio("메뉴", [
         "📡 스캔/검색",
         "👀 내 종목 감시",
         "📊 성과 리포트",
