@@ -58,25 +58,6 @@ def judge_per_by_sector(per, sector_name):
 GEMINI_OK = False
 gemini_model = None
 
-# 사이드바에서 API 키 입력받기
-if "gemini_api_key" not in st.session_state:
-    st.session_state["gemini_api_key"] = ""
-
-with st.sidebar:
-    st.markdown("**🔑 Gemini API 키**")
-    _user_key = st.text_input("API 키 입력", type="password", placeholder="AIzaSy...", key="gemini_key_input", label_visibility="collapsed")
-    if _user_key:
-        st.session_state["gemini_api_key"] = _user_key
-    st.caption("[무료 API 키 발급받기](https://aistudio.google.com/apikey)")
-
-if st.session_state["gemini_api_key"]:
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=st.session_state["gemini_api_key"])
-        gemini_model = genai.GenerativeModel("gemini-2.5-flash")
-        GEMINI_OK = True
-    except Exception:
-        pass
         
 @st.cache_data(ttl=300)
 def gemini_judgment(name, code, price, change, score, grade, rsi, mfi, adx, per, pbr, ev_ebitda, buy_reasons, sell_reasons, support, resist, verdict):
@@ -4284,6 +4265,12 @@ with st.sidebar:
         "🌊 외국인 수급 추적",
     ], label_visibility="collapsed")
 
+    st.divider()
+    st.markdown("**🔑 Gemini API 키**")
+    _user_key = st.text_input("API 키 입력", type="password", placeholder="AIzaSy...", key="gemini_key_input", label_visibility="collapsed")
+    if _user_key:
+        st.session_state["gemini_api_key"] = _user_key
+    st.caption("[무료 API 키 발급받기](https://aistudio.google.com/apikey)")
     st.divider()
     st.markdown("**시장**")
     market = st.selectbox("시장", ["KOSDAQ", "KOSPI", "NASDAQ", "S&P500", "NYSE"], index=0, label_visibility="collapsed")
