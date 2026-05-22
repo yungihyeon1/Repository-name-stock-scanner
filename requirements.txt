@@ -10,3 +10,4 @@ google-generativeai
 yfinance
 lxml
 finance-datareader
+pykrx
