@@ -3,10 +3,10 @@ pandas
 numpy
 requests
 matplotlib
-FinanceDataReader
 streamlit-autorefresh
 pyyaml
 beautifulsoup4
 google-generativeai
 yfinance
 lxml
+finance-datareader
