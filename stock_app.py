@@ -2140,19 +2140,39 @@ def calc_adx(df, period=14):
 # ── 종목 리스트 캐시 ──
 @st.cache_data(ttl=3600)
 def get_stocks(market="KOSDAQ"):
-    if not FDR_OK:
-        return pd.DataFrame()
+    # 방법 1: FinanceDataReader
+    if FDR_OK:
+        try:
+            df = fdr.StockListing(market)
+            if df is not None and len(df) > 0:
+                if "Code" not in df.columns and "Symbol" in df.columns:
+                    df = df.rename(columns={"Symbol": "Code"})
+                if "Name" not in df.columns and "종목명" in df.columns:
+                    df = df.rename(columns={"종목명": "Name"})
+                return df[["Code", "Name"]].dropna().reset_index(drop=True)
+        except Exception:
+            pass
+
+    # 방법 2: pykrx 백업
     try:
-        df = fdr.StockListing(market)
-        if df is not None and len(df) > 0:
-            if "Code" not in df.columns and "Symbol" in df.columns:
-                df = df.rename(columns={"Symbol": "Code"})
-            if "Name" not in df.columns and "종목명" in df.columns:
-                df = df.rename(columns={"종목명": "Name"})
-            return df[["Code", "Name"]].dropna().reset_index(drop=True)
+        from pykrx import stock
+        import datetime
+        today = datetime.datetime.now().strftime("%Y%m%d")
+        if market == "KOSDAQ":
+            codes = stock.get_market_ticker_list(today, market="KOSDAQ")
+        else:
+            codes = stock.get_market_ticker_list(today, market="KOSPI")
+        rows = []
+        for c in codes:
+            name = stock.get_market_ticker_name(c)
+            rows.append({"Code": c, "Name": name})
+        if rows:
+            return pd.DataFrame(rows)
     except Exception:
         pass
+
     return pd.DataFrame(columns=["Code", "Name"])
+
 
 # ── PER/PBR 개별 조회 (네이버 API) ──
 @st.cache_data(ttl=600)
