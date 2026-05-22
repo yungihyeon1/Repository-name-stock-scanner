@@ -532,8 +532,11 @@ def calc_adx(df, period=14):
     plus_di = 100 * (plus_dm.rolling(period).mean() / (atr + 1e-9))
     minus_di = 100 * (minus_dm.rolling(period).mean() / (atr + 1e-9))
     dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di + 1e-9)
-
-    # ═══════════════════════════════════════════════════════
+    adx = dx.rolling(period).mean()
+    return adx, plus_di, minus_di
+    
+    
+# ═══════════════════════════════════════════════════════
 #  코인 분석 함수
 # ═══════════════════════════════════════════════════════
 
@@ -1302,7 +1305,6 @@ def get_stocks(market="KOSDAQ"):
         pass
 
     return pd.DataFrame(columns=["Code", "Name"])
-
 # ── PER/PBR 개별 조회 (네이버 API) ──
 @st.cache_data(ttl=600)
 def get_per_pbr(code):
@@ -2323,7 +2325,6 @@ with st.sidebar:
     st.caption("거래대금 필터: 단타≥50억 | 스윙≥20억 | 중장기≥10억")
     st.caption("PER/PBR: 네이버 실시간 조회")
     st.caption("목표가/손절가: 지지선·저항선 기반")
-
 # ─── 분석 함수 ───────────────────────────────────────
 def analyze(df, code, name, cfg, market="KOSDAQ"):
     code = str(code).strip()
@@ -2808,6 +2809,7 @@ def run_full_scan(stocks):
             else: r["crown"] = ""
 
     return all_results, cached_data
+
 # ── 카드 UI ──
 def show_card(r, prefix, cfg, is_new_buy=False, is_new_sell=False, show_wl_btn=True):
     score = r["score"]
@@ -3450,6 +3452,3 @@ elif menu == "💰 매매":
 # ── 푸터 ──
 st.divider()
 st.caption(f"🔥 급등 예측 탐색기 v24.0 PRO (서버용) | {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')} | ⚠️ 투자 판단의 책임은 본인에게 있습니다.")
-
-    adx = dx.rolling(period).mean()
-    return adx, plus_di, minus_di
