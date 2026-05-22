@@ -1324,17 +1324,9 @@ def check_paper_tpsl():
             result = close_paper_trade(t["id"], current_price)
             if result:
                 emoji = "🎯" if hit == "TP" else "🛑"
-                try:
-                    send_telegram(
-                        f"🪙 <b>가상매매 자동 종료 ({hit})</b>\n"
-                        f"{emoji} {result['symbol']} {result['side']} {result['leverage']}x\n"
-                        f"진입: ${result['entry_price']:,.4f} → 종료: ${current_price:,.4f}\n"
-                        f"수익률: {result['pnl_pct']:+.2f}% | 수익: ${result['pnl_usdt']:+,.2f}"
-                    )
-                except:
-                    pass
                 closed_any = True
     return closed_any
+
 
 # ── 페이지 설정 ──
 st.set_page_config(page_title="급등 예측 탐색기 v24", layout="wide")
@@ -1369,44 +1361,6 @@ MIN_SCORE = 90
 SOUND_BUY = "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
 SOUND_SELL = "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
 
-# ── 디스코드 알림 ──
-DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1504437886039232512/5keyGGXE2TtLjYeu5TN6R3OGNHhQMfpLmIcg2-ysRAUa7WnyS_FlJJSenldDILzVDnZG"
-
-def send_discord(content, embeds=None):
-    """디스코드 웹훅으로 알림 전송"""
-    try:
-        payload = {}
-        if content:
-            payload["content"] = content[:2000]
-        if embeds:
-            payload["embeds"] = embeds
-        resp = requests.post(DISCORD_WEBHOOK, json=payload, timeout=10)
-        return resp.status_code in [200, 204]
-    except:
-        return False
-
-def send_telegram(msg):
-    """기존 텔레그램 호출을 디스코드로 자동 전환"""
-    import re
-    clean = re.sub(r'<[^>]+>', '', msg)
-    lines = clean.strip().split('\n')
-    title = lines[0] if lines else "주식 알림"
-    desc = '\n'.join(lines[1:]) if len(lines) > 1 else ""
-
-    if "고점수" in title or "급등" in title:
-        color = 0xFF1744
-    elif "매도" in title or "하락" in title:
-        color = 0x2979FF
-    else:
-        color = 0x4CAF50
-
-    embed = {
-        "title": title[:256],
-        "description": desc[:4096],
-        "color": color,
-        "footer": {"text": "🔥 급등 예측 탐색기"}
-    }
-    send_discord(None, embeds=[embed])
 
 # ── 스타일 ──
 STYLES = {
@@ -4961,20 +4915,8 @@ if menu == "📡 스캔/검색":
                         _alert_icon = "🔔 "
                     else:
                         _alert_icon = ""
-
                     with st.expander(f"{_alert_icon}{r.get('crown', '')} {r['name']} ({r['code']}) — {r['score']}점 {r['grade']} | {r['verdict']}", expanded=False):
                         show_card(r, f"scan_{skey}_{r['code']}", cfg)
-                    if r["score"] >= MIN_SCORE:
-                        tg_msg = (
-                            f'🚨 <b>고점수 종목 감지!</b>\n'
-                            f'종목: {r["name"]} ({r["code"]})\n'
-                            f'점수: {r["score"]}점 ({r["grade"]})\n'
-                            f'현재가: {r["price"]:,}원 ({r["change"]:+.1f}%)\n'
-                            f'판정: {r["verdict"]}\n'
-                            f'매수: {", ".join(r["buy_reasons"])}\n'
-                            f'매도: {", ".join(r["sell_reasons"])}'
-                        )
-                        send_telegram(tg_msg)
 
 
         st.divider()
@@ -5347,10 +5289,7 @@ elif menu == "👀 내 종목 감시":
                         if is_new_sell:
                             st.markdown(f'<audio autoplay><source src="{SOUND_SELL}"></audio>', unsafe_allow_html=True)
                     show_card(r, f"wl_{code}", cfg, is_new_buy=is_new_buy, is_new_sell=is_new_sell)
-            if is_new_buy:
-                send_telegram(f'📈 <b>새 매수 신호!</b>\n{r["name"]} ({r["code"]})\n점수: {r["score"]}점\n현재가: {r["price"]:,}원')
-            if is_new_sell:
-                send_telegram(f'📉 <b>새 매도 신호!</b>\n{r["name"]} ({r["code"]})\n점수: {r["score"]}점\n현재가: {r["price"]:,}원')
+
 
 # ======================== 성과 리포트 ========================
 elif menu == "📊 성과 리포트":
@@ -5421,24 +5360,6 @@ elif menu == "📊 성과 리포트":
                         f'</div>', unsafe_allow_html=True
                     )
 
-                # 텔레그램 전송 버튼
-                if st.button("📱 텔레그램으로 리포트 전송"):
-                    msg = (
-                        f"📊 <b>성과 리포트</b>\n"
-                        f"📅 스캔: {report['date']}\n"
-                        f"━━━━━━━━━━━━━\n"
-                        f"🎯 승률: {report['win_rate']}%\n"
-                        f"📈 평균 수익: {report['avg_pnl']:+.2f}%\n"
-                        f"✅ 승: {report['wins']} | ❌ 패: {report['losses']}\n"
-                        f"━━━━━━━━━━━━━\n"
-                        f"🏆 최고: {report['best']['name']} {report['best']['pnl']:+.2f}%\n"
-                        f"💀 최저: {report['worst']['name']} {report['worst']['pnl']:+.2f}%\n"
-                    )
-                    for r in report["results"][:10]:
-                        emoji = "✅" if r["pnl"] > 0 else "❌"
-                        msg += f"{emoji} {r['name']}: {r['pnl']:+.2f}% {r['status']}\n"
-                    send_telegram(msg)
-                    st.success("디스코드로 전송 완료!")
 
                 # ── 지표별 승률 분석 ──
                 st.divider()
