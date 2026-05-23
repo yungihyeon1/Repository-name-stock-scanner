@@ -1190,7 +1190,7 @@ def save_coin_trades(trades):
 def open_paper_trade(symbol, side, entry_price, leverage, qty_usdt, tp_price=0, sl_price=0):
     trades = load_coin_trades()
     trade = {
-        "id": int(time.time() * 1200),
+        "id": int(time.time() * 1000),
         "symbol": symbol, "side": side,
         "entry_price": entry_price, "leverage": leverage,
         "qty_usdt": qty_usdt,
@@ -2748,7 +2748,7 @@ def run_full_scan(stocks):
     cached_data = {}; all_results = {}
 
     st.subheader("📡 데이터 수집 중..."); dl_bar = st.progress(0.0); dl_text = st.empty()
-    total = min(total, 1000)
+    total = min(total, 1200)
     for i in range(total):
         row = stocks.iloc[i]; code = str(row["Code"]).strip(); name = str(row["Name"]).strip()
         dl_bar.progress(min((i+1)/total, 1.0)); dl_text.text(f"다운로드: {name} ({i+1}/{total})")
