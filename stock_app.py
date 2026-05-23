@@ -2736,7 +2736,7 @@ def run_full_scan(stocks):
     cached_data = {}; all_results = {}
 
     st.subheader("📡 데이터 수집 중..."); dl_bar = st.progress(0.0); dl_text = st.empty()
-    total = min(total, 300)
+    total = min(total, 600)
     for i in range(total):
         row = stocks.iloc[i]; code = str(row["Code"]).strip(); name = str(row["Name"]).strip()
         dl_bar.progress(min((i+1)/total, 1.0)); dl_text.text(f"다운로드: {name} ({i+1}/{total})")
