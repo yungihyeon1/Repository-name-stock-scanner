@@ -50,25 +50,19 @@ def judge_per_by_sector(per, sector_name):
 
 
 # ── Gemini AI (서버용: 키를 사이드바에서 입력받음) ──
+from google import genai
+from google.genai import types
+
 GEMINI_OK = False
 gemini_model = None
-try:
-    import google.generativeai as genai
-    # 키는 사이드바에서 입력받아 런타임에 설정
-except Exception:
-    pass
 
 def init_gemini(api_key):
-    """사용자가 입력한 API 키로 Gemini 초기화"""
-    global GEMINI_OK, gemini_model
-    if not api_key:
-        return
+    global gemini_model, GEMINI_OK
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        gemini_model = genai.GenerativeModel("gemini-2.5-flash")
+        client = genai.Client(api_key=api_key)
+        gemini_model = client
         GEMINI_OK = True
-    except Exception:
+    except:
         GEMINI_OK = False
 
 
@@ -145,11 +139,14 @@ PER: {per_text} | PBR: {pbr_text} | EV/EBITDA: {ev_text}
 6) ⚠️ 주의할 점"""
 
         prompt = data_section + format_section
-        response = gemini_model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        st.error(f"Gemini 오류: {e}")
-        return None
+        response = gemini_model.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                tools=[types.Tool(google_search=types.GoogleSearch())]
+            )
+        )
+
 
 
 @st.cache_data(ttl=300)
