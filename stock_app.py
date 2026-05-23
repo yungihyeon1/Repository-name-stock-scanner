@@ -1190,7 +1190,7 @@ def save_coin_trades(trades):
 def open_paper_trade(symbol, side, entry_price, leverage, qty_usdt, tp_price=0, sl_price=0):
     trades = load_coin_trades()
     trade = {
-        "id": int(time.time() * 1000),
+        "id": int(time.time() * 1200),
         "symbol": symbol, "side": side,
         "entry_price": entry_price, "leverage": leverage,
         "qty_usdt": qty_usdt,
