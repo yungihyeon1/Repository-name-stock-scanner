@@ -2061,7 +2061,6 @@ with st.sidebar:
         "💰 매매",
         "🚀 급등 사냥",
         "🌊 외국인 수급 추적",
-        "💬 AI 주식 상담",
         "🎯 투자 브리핑",
     ], label_visibility="collapsed")
 
@@ -3498,12 +3497,12 @@ elif menu == "💰 매매":
     if not KIS_OK: st.error("KIS API 미연결")
     else: st.info("KIS API 매매 기능은 로컬 전용입니다.")
 
-elif menu == "💬 AI 주식 상담":
-    st.header("💬 AI 주식 상담")
-    st.caption("Gemini AI에게 주식/코인 관련 뭐든 물어보세요!")
+elif menu == "🎯 투자 브리핑":
+    st.header("🎯 AI 투자 브리핑")
+    st.caption("실시간 모니터링 요원 | 패턴 매칭 전문가 | 확신 있는 브리핑")
 
     if not GEMINI_OK:
-        st.warning("🔑 사이드바에서 Gemini API 키를 입력하면 AI 상담을 이용할 수 있습니다.")
+        st.warning("🔑 사이드바에서 Gemini API 키를 입력하면 투자 브리핑을 이용할 수 있습니다.")
     else:
         # 방문자 수 카운터
         VISIT_FILE = "visit_count.json"
@@ -3530,127 +3529,6 @@ elif menu == "💬 AI 주식 상담":
         except:
             pass
 
-        # 채팅 히스토리 초기화
-        if "chat_history" not in st.session_state:
-            st.session_state["chat_history"] = []
-
-        # 이전 대화 표시
-        for msg in st.session_state["chat_history"]:
-            if msg["role"] == "user":
-                st.markdown(
-                    f'<div style="background:#2a2a4e;padding:12px;border-radius:10px;margin:8px 0;border-left:4px solid #ff9800">'
-                    f'🧑 <b>나:</b> {msg["text"]}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(
-                    f'<div style="background:#1a2e1a;padding:12px;border-radius:10px;margin:8px 0;border-left:4px solid #4caf50">'
-                    f'🤖 <b>AI:</b> {msg["text"]}</div>', unsafe_allow_html=True)
-
-        # 입력창
-        user_input = st.text_input("💬 질문을 입력하세요", placeholder="예: 삼성전자 지금 사도 될까요?", key="chat_input")
-
-        col_send, col_clear = st.columns([1, 1])
-        with col_send:
-            send_btn = st.button("📤 전송", key="chat_send", use_container_width=True, type="primary")
-        with col_clear:
-            if st.button("🗑️ 대화 초기화", key="chat_clear", use_container_width=True):
-                st.session_state["chat_history"] = []
-                st.rerun()
-
-        if send_btn and user_input:
-            st.session_state["chat_history"].append({"role": "user", "text": user_input})
-
-            with st.spinner("🤖 AI가 답변 중..."):
-                try:
-                    # 종목명 감지 → 실제 데이터 수집
-                    stock_data = ""
-                    try:
-                        stocks_df = get_stocks(market)
-                        for _word in user_input.replace(",", " ").split():
-                            _match = stocks_df[stocks_df["Name"].str.contains(_word, case=False, na=False)]
-                            if not _match.empty:
-                                _row = _match.iloc[0]
-                                _code = str(_row["Code"]).strip()
-                                _name = str(_row["Name"]).strip()
-                                _df = fetch(_code)
-                                if _df is not None:
-                                    _cfg = list(STYLES.values())[0]
-                                    _r = analyze(_df, _code, _name, _cfg, market=market)
-                                    stock_data = (
-                                        f"\n[{_name}({_code}) 실시간 데이터]\n"
-                                        f"현재가: {_r['price']:,}원 ({_r['change']:+.2f}%)\n"
-                                        f"AI점수: {_r['score']}점 ({_r['grade']}) | 판정: {_r['verdict']}\n"
-                                        f"RSI: {_r['rsi']} | MFI: {_r['mfi']} | ADX: {_r['adx']}\n"
-                                        f"PER: {_r.get('per',0)} | PBR: {_r.get('pbr',0)} | EV/EBITDA: {_r.get('ev_ebitda','N/A')}\n"
-                                        f"지지선: {_r['support']:,}원 | 저항선: {_r['resist']:,}원\n"
-                                        f"매수신호: {', '.join(_r.get('buy_reasons',[])[:5])}\n"
-                                        f"매도신호: {', '.join(_r.get('sell_reasons',[])[:5])}\n"
-                                        f"거래량비: {_r['vol_ratio']}배\n"
-                                    )
-                                    if _r.get("foreign_buys"):
-                                        stock_data += f"외국인 순매수: {', '.join([f'{x:+,}' for x in _r['foreign_buys']])}\n"
-                                break
-                    except:
-                        pass
-
-                    system_prompt = (
-                        "당신은 연봉 1조 퀀트 트레이더이자 전인구경제연구소 스타일의 투자 분석가입니다.\n"
-                        "아래 원칙을 따르세요:\n"
-                        "1. 실제 데이터가 있으면 반드시 데이터 기반으로 분석하세요\n"
-                        "2. 매수/매도/관망 중 명확한 판단을 내리세요\n"
-                        "3. 진입가, 목표가, 손절가를 구체적으로 제시하세요\n"
-                        "4. 외국인/기관 수급 흐름을 반드시 언급하세요\n"
-                        "5. 초보자도 이해하게 쉬운 말로 설명하세요\n"
-                        "6. 이모지를 적극 활용하세요\n"
-                        "7. 마지막에 '⚠️ 투자 판단의 책임은 본인에게 있습니다' 명시\n"
-                        "한국어로 답하세요."
-                    )
-                    full_prompt = system_prompt + "\n\n" + stock_data + "\n질문: " + user_input
-
-
-                    # 이전 대화 컨텍스트 추가 (최근 5개)
-                    context = ""
-                    for msg in st.session_state["chat_history"][-10:]:
-                        if msg["role"] == "user":
-                            context += f"사용자: {msg['text']}\n"
-                        else:
-                            context += f"AI: {msg['text']}\n"
-                    if context:
-                        full_prompt = system_prompt + "\n\n이전 대화:\n" + context + "\n" + stock_data + "\n질문: " + user_input
-
-                    response = gemini_model.generate_content(full_prompt)
-                    ai_text = response.text.strip()
-                    st.session_state["chat_history"].append({"role": "ai", "text": ai_text})
-                except Exception as e:
-                    error_msg = f"죄송합니다. 오류가 발생했어요: {str(e)[:100]}"
-                    st.session_state["chat_history"].append({"role": "ai", "text": error_msg})
-
-            st.rerun()
-
-        # 추천 질문
-        st.markdown("---")
-        st.markdown("**💡 추천 질문:**")
-        suggest_cols = st.columns(3)
-        suggestions = [
-            "오늘 시장 어때요?",
-            "RSI가 뭐예요?",
-            "PER 낮으면 좋은 건가요?",
-            "손절은 몇 % 에서 해야 해요?",
-            "코인 선물 위험한가요?",
-            "초보자 추천 투자 전략",
-        ]
-        for i, sug in enumerate(suggestions):
-            with suggest_cols[i % 3]:
-                if st.button(sug, key=f"suggest_{i}"):
-                    st.session_state["chat_input_prefill"] = sug
-                    st.rerun()
-
-elif menu == "🎯 투자 브리핑":
-    st.header("🎯 AI 투자 브리핑")
-    st.caption("실시간 모니터링 요원 | 패턴 매칭 전문가 | 확신 있는 브리핑")
-
-    if not GEMINI_OK:
-        st.warning("🔑 사이드바에서 Gemini API 키를 입력하면 투자 브리핑을 이용할 수 있습니다.")
-    else:
         BRIEFING_PERSONA = """당신은 '세이브티커(SaveTicker)' 소속 실시간 모니터링 요원이자 패턴 매칭 전문가입니다.
 
 [정체성]
@@ -3695,6 +3573,17 @@ elif menu == "🎯 투자 브리핑":
         if "briefing_history" not in st.session_state:
             st.session_state["briefing_history"] = []
 
+        # 이전 대화 표시
+        for msg in st.session_state["briefing_history"]:
+            if msg["role"] == "user":
+                st.markdown(
+                    f'<div style="background:#2a2a4e;padding:12px;border-radius:10px;margin:8px 0;border-left:4px solid #ff9800">'
+                    f'🧑 <b>질문:</b> {msg["text"]}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(
+                    f'<div style="background:#1a2e1a;padding:12px;border-radius:10px;margin:8px 0;border-left:4px solid #4caf50">'
+                    f'🎯 {msg["text"]}</div>', unsafe_allow_html=True)
+
         # 빠른 분석 버튼
         st.markdown("### ⚡ 빠른 분석")
         quick_cols = st.columns(4)
@@ -3702,7 +3591,7 @@ elif menu == "🎯 투자 브리핑":
             ("🇰🇷 오늘의 시장", "오늘 한국 주식 시장 전체 브리핑을 해줘. 코스피/코스닥 동향, 주요 섹터 흐름, 외국인/기관 수급 요약해줘."),
             ("🪙 코인 시장", "오늘 코인 시장 브리핑을 해줘. 비트코인/이더리움 동향, 주요 알트코인 흐름, 펀딩비/OI 요약해줘."),
             ("📈 급등 후보", "지금 차트 패턴상 급등 가능성이 높은 종목 유형을 분석해줘. 상승삼각형, 역머리어깨형, 박스권 돌파 등 어떤 패턴을 주목해야 할까?"),
-            ("🌊 수급 분석", "외국인과 기관이 최근 집중 매수하는 섹터와 종목 유형을 분석해줘. 전인구 전략 관점에서 브리핑해줘."),
+            ("🌊 수급 분석", "외국인과 기관이 최근 집중 매수하는 섹터와 종목 유형을 분석해줘."),
         ]
         for i, (label, query) in enumerate(quick_queries):
             with quick_cols[i]:
@@ -3722,7 +3611,6 @@ elif menu == "🎯 투자 브리핑":
             brief_analyze = st.button("🎯 브리핑", key="brief_analyze_btn", use_container_width=True, type="primary")
 
         if brief_analyze and brief_stock:
-            # 종목 데이터 수집
             stock_data = ""
             try:
                 stocks_df = get_stocks(market)
@@ -3772,7 +3660,7 @@ elif menu == "🎯 투자 브리핑":
         st.divider()
         st.markdown("### 💬 자유 질문")
         prefill = st.session_state.pop("briefing_prefill", "")
-        user_input = st.text_area("질문을 입력하세요", value=prefill, placeholder="예: 2차전지 섹터 지금 들어가도 될까?", key="briefing_input", height=100)
+        user_input = st.text_area("질문을 입력하세요", value=prefill, placeholder="예: 삼성전자 지금 사도 될까? / 2차전지 섹터 전망은?", key="briefing_input", height=100)
 
         col_send, col_clear = st.columns([1, 1])
         with col_send:
@@ -3786,11 +3674,43 @@ elif menu == "🎯 투자 브리핑":
             st.session_state["briefing_history"].append({"role": "user", "text": user_input})
             with st.spinner("🎯 브리핑 생성 중..."):
                 try:
+                    # 종목명 감지 → 실제 데이터 수집
+                    stock_data = ""
+                    try:
+                        stocks_df = get_stocks(market)
+                        for _word in user_input.replace(",", " ").split():
+                            _match = stocks_df[stocks_df["Name"].str.contains(_word, case=False, na=False)]
+                            if not _match.empty:
+                                _row = _match.iloc[0]
+                                _code = str(_row["Code"]).strip()
+                                _name = str(_row["Name"]).strip()
+                                _df = fetch(_code)
+                                if _df is not None:
+                                    _cfg = list(STYLES.values())[0]
+                                    _r = analyze(_df, _code, _name, _cfg, market=market)
+                                    stock_data = (
+                                        f"\n[{_name}({_code}) 실시간 데이터]\n"
+                                        f"현재가: {_r['price']:,}원 ({_r['change']:+.2f}%)\n"
+                                        f"AI점수: {_r['score']}점 ({_r['grade']}) | 판정: {_r['verdict']}\n"
+                                        f"RSI: {_r['rsi']} | MFI: {_r['mfi']} | ADX: {_r['adx']}\n"
+                                        f"PER: {_r.get('per',0)} | PBR: {_r.get('pbr',0)} | EV/EBITDA: {_r.get('ev_ebitda','N/A')}\n"
+                                        f"지지선: {_r['support']:,}원 | 저항선: {_r['resist']:,}원\n"
+                                        f"매수신호: {', '.join(_r.get('buy_reasons',[])[:5])}\n"
+                                        f"매도신호: {', '.join(_r.get('sell_reasons',[])[:5])}\n"
+                                        f"거래량비: {_r['vol_ratio']}배\n"
+                                    )
+                                    if _r.get("foreign_buys"):
+                                        stock_data += f"외국인 순매수: {', '.join([f'{x:+,}' for x in _r['foreign_buys']])}\n"
+                                break
+                    except:
+                        pass
+
                     context = ""
                     for msg in st.session_state["briefing_history"][-10:]:
                         if msg["role"] == "user": context += f"사용자: {msg['text']}\n"
                         else: context += f"AI: {msg['text']}\n"
-                    full_prompt = BRIEFING_PERSONA + "\n\n이전 대화:\n" + context + "\n질문: " + user_input
+
+                    full_prompt = BRIEFING_PERSONA + "\n\n이전 대화:\n" + context + "\n" + stock_data + "\n질문: " + user_input
                     response = gemini_model.generate_content(full_prompt)
                     ai_text = response.text.strip()
                     st.session_state["briefing_history"].append({"role": "ai", "text": ai_text})
@@ -3798,20 +3718,23 @@ elif menu == "🎯 투자 브리핑":
                     st.session_state["briefing_history"].append({"role": "ai", "text": f"오류 발생: {str(e)[:100]}"})
             st.rerun()
 
-        # 대화 히스토리 표시
-        if st.session_state["briefing_history"]:
-            st.divider()
-            st.markdown("### 📋 브리핑 기록")
-            for msg in st.session_state["briefing_history"]:
-                if msg["role"] == "user":
-                    st.markdown(
-                        f'<div style="background:#2a2a4e;padding:12px;border-radius:10px;margin:8px 0;border-left:4px solid #ff9800">'
-                        f'🧑 <b>질문:</b> {msg["text"]}</div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(
-                        f'<div style="background:#1a2e1a;padding:12px;border-radius:10px;margin:8px 0;border-left:4px solid #4caf50">'
-                        f'🎯 {msg["text"]}</div>', unsafe_allow_html=True)
-
+        # 추천 질문
+        st.divider()
+        st.markdown("**💡 추천 질문:**")
+        suggest_cols = st.columns(3)
+        suggestions = [
+            "오늘 시장 어때요?",
+            "RSI가 뭐예요?",
+            "PER 낮으면 좋은 건가요?",
+            "손절은 몇 %에서 해야 해요?",
+            "코인 선물 위험한가요?",
+            "초보자 추천 투자 전략",
+        ]
+        for i, sug in enumerate(suggestions):
+            with suggest_cols[i % 3]:
+                if st.button(sug, key=f"suggest_{i}"):
+                    st.session_state["briefing_prefill"] = sug
+                    st.rerun()
 
 # ── 푸터 ──
 st.divider()
