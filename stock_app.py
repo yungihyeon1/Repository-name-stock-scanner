@@ -2758,9 +2758,15 @@ def run_full_scan(stocks):
     st.info(f"📊 데이터 수집 완료: {len(cached_data)}개 종목 / 전체 {total}개")
 
     phase, phase_icon = market_phase()
-    if phase == "하락장": adjusted_min_score = 90; st.warning(f"{phase_icon} 하락장 감지 — 최소 점수 90점으로 상향")
-    elif phase == "상승장": adjusted_min_score = 70; st.success(f"{phase_icon} 상승장 감지 — 최소 점수 70점으로 하향")
-    else: adjusted_min_score = MIN_SCORE; st.info(f"{phase_icon} 횡보장 — 기본 점수 {MIN_SCORE}점 유지")
+    if phase == "하락장":
+        adjusted_min_score = 85
+        st.warning(f"{phase_icon} 하락장 감지 — 최소 점수 85점")
+    elif phase == "상승장":
+        adjusted_min_score = 85
+        st.success(f"{phase_icon} 상승장 감지 — 최소 점수 85점")
+    else:
+        adjusted_min_score = 85
+        st.info(f"{phase_icon} 횡보장 — 기본 점수 85점")
 
     st.subheader("🔎 3개 스타일 동시 분석 중..."); an_bar = st.progress(0.0); an_text = st.empty()
     total_work = len(cached_data) * len(STYLES); done = 0
