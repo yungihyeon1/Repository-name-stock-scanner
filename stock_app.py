@@ -146,7 +146,9 @@ PER: {per_text} | PBR: {pbr_text} | EV/EBITDA: {ev_text}
                 tools=[types.Tool(google_search=types.GoogleSearch())]
             )
         )
-
+        ai_summary = response.text.strip()[:300]
+    except:
+        ai_summary = ""
 
 
 @st.cache_data(ttl=300)
