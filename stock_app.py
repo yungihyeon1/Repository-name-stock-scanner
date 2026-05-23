@@ -3561,14 +3561,51 @@ elif menu == "💬 AI 주식 상담":
 
             with st.spinner("🤖 AI가 답변 중..."):
                 try:
+                    # 종목명 감지 → 실제 데이터 수집
+                    stock_data = ""
+                    try:
+                        stocks_df = get_stocks(market)
+                        for _word in user_input.replace(",", " ").split():
+                            _match = stocks_df[stocks_df["Name"].str.contains(_word, case=False, na=False)]
+                            if not _match.empty:
+                                _row = _match.iloc[0]
+                                _code = str(_row["Code"]).strip()
+                                _name = str(_row["Name"]).strip()
+                                _df = fetch(_code)
+                                if _df is not None:
+                                    _cfg = list(STYLES.values())[0]
+                                    _r = analyze(_df, _code, _name, _cfg, market=market)
+                                    stock_data = (
+                                        f"\n[{_name}({_code}) 실시간 데이터]\n"
+                                        f"현재가: {_r['price']:,}원 ({_r['change']:+.2f}%)\n"
+                                        f"AI점수: {_r['score']}점 ({_r['grade']}) | 판정: {_r['verdict']}\n"
+                                        f"RSI: {_r['rsi']} | MFI: {_r['mfi']} | ADX: {_r['adx']}\n"
+                                        f"PER: {_r.get('per',0)} | PBR: {_r.get('pbr',0)} | EV/EBITDA: {_r.get('ev_ebitda','N/A')}\n"
+                                        f"지지선: {_r['support']:,}원 | 저항선: {_r['resist']:,}원\n"
+                                        f"매수신호: {', '.join(_r.get('buy_reasons',[])[:5])}\n"
+                                        f"매도신호: {', '.join(_r.get('sell_reasons',[])[:5])}\n"
+                                        f"거래량비: {_r['vol_ratio']}배\n"
+                                    )
+                                    if _r.get("foreign_buys"):
+                                        stock_data += f"외국인 순매수: {', '.join([f'{x:+,}' for x in _r['foreign_buys']])}\n"
+                                break
+                    except:
+                        pass
+
                     system_prompt = (
-                        "당신은 친절한 주식/코인 투자 상담사입니다. "
-                        "초보 투자자도 이해할 수 있게 쉽게 설명하세요. "
-                        "이모지를 적극 사용하고, 한국어로 답하세요. "
-                        "투자 추천이 아닌 정보 제공임을 항상 명시하세요. "
-                        "답변은 간결하게 5줄 이내로 해주세요."
+                        "당신은 연봉 1조 퀀트 트레이더이자 전인구경제연구소 스타일의 투자 분석가입니다.\n"
+                        "아래 원칙을 따르세요:\n"
+                        "1. 실제 데이터가 있으면 반드시 데이터 기반으로 분석하세요\n"
+                        "2. 매수/매도/관망 중 명확한 판단을 내리세요\n"
+                        "3. 진입가, 목표가, 손절가를 구체적으로 제시하세요\n"
+                        "4. 외국인/기관 수급 흐름을 반드시 언급하세요\n"
+                        "5. 초보자도 이해하게 쉬운 말로 설명하세요\n"
+                        "6. 이모지를 적극 활용하세요\n"
+                        "7. 마지막에 '⚠️ 투자 판단의 책임은 본인에게 있습니다' 명시\n"
+                        "한국어로 답하세요."
                     )
-                    full_prompt = system_prompt + "\n\n질문: " + user_input
+                    full_prompt = system_prompt + "\n\n" + stock_data + "\n질문: " + user_input
+
 
                     # 이전 대화 컨텍스트 추가 (최근 5개)
                     context = ""
@@ -3578,7 +3615,7 @@ elif menu == "💬 AI 주식 상담":
                         else:
                             context += f"AI: {msg['text']}\n"
                     if context:
-                        full_prompt = system_prompt + "\n\n이전 대화:\n" + context + "\n질문: " + user_input
+                        full_prompt = system_prompt + "\n\n이전 대화:\n" + context + "\n" + stock_data + "\n질문: " + user_input
 
                     response = gemini_model.generate_content(full_prompt)
                     ai_text = response.text.strip()
