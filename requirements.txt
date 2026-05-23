@@ -6,7 +6,7 @@ matplotlib
 streamlit-autorefresh
 pyyaml
 beautifulsoup4
-google-generativeai
+google-genai
 yfinance
 lxml
 finance-datareader
