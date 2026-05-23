@@ -2031,10 +2031,22 @@ with st.sidebar:
 
     # ── Gemini API 키 입력 (서버용) ──
     st.markdown("**🔑 Gemini API 키**")
-    _user_key = st.text_input("API 키 입력", type="password", placeholder="AIzaSy...", key="gemini_key_input", label_visibility="collapsed")
+    _saved_key = ""
+    try:
+        if os.path.exists("gemini_key.txt"):
+            with open("gemini_key.txt", "r") as f:
+                _saved_key = f.read().strip()
+    except: pass
+    _user_key = st.text_input("API 키 입력", value=_saved_key, type="password", placeholder="AIzaSy...", key="gemini_key_input", label_visibility="collapsed")
     if _user_key:
         st.session_state["gemini_api_key"] = _user_key
         init_gemini(_user_key)
+        try:
+            with open("gemini_key.txt", "w") as f:
+                f.write(_user_key)
+        except: pass
+    elif _saved_key:
+        init_gemini(_saved_key)
     st.caption("[무료 API 키 발급받기](https://aistudio.google.com/apikey)")
     st.sidebar.markdown(f"**🧠 Gemini AI:** {'🟢 연결됨' if GEMINI_OK else '⚪ 미연결'}")
     st.divider()
@@ -2736,7 +2748,7 @@ def run_full_scan(stocks):
     cached_data = {}; all_results = {}
 
     st.subheader("📡 데이터 수집 중..."); dl_bar = st.progress(0.0); dl_text = st.empty()
-    total = min(total, 600)
+    total = min(total, 1000)
     for i in range(total):
         row = stocks.iloc[i]; code = str(row["Code"]).strip(); name = str(row["Name"]).strip()
         dl_bar.progress(min((i+1)/total, 1.0)); dl_text.text(f"다운로드: {name} ({i+1}/{total})")
