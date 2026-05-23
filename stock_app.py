@@ -2050,38 +2050,6 @@ with st.sidebar:
     st.sidebar.markdown(f"**🧠 Gemini AI:** {'🟢 연결됨' if GEMINI_OK else '⚪ 미연결'}")
     st.divider()
 
-    # ── 이용 가이드 ──
-    with st.sidebar.expander("📖 이용 가이드", expanded=False):
-        st.markdown("""
-**🚀 급등 예측 탐색기 사용법**
-
-**📡 스캔/검색**
-- 종목명 입력 → 개별 분석
-- 전체 스캔 → AI가 600개 종목 자동 분석
-- 점수 85점 이상만 결과에 표시
-
-**👀 내 종목 감시**
-- 관심 종목을 등록하고 실시간 모니터링
-- 목표가/손절가 알림 설정 가능
-
-**🪙 코인 선물**
-- 바이낸스 코인 선물 50개 자동 분석
-- 롱/숏 신호 + 가상매매 지원
-
-**🎯 투자 브리핑**
-- AI에게 자유롭게 질문
-- 종목명 포함 시 실시간 데이터 자동 수집
-- 실시간 뉴스/공시 기반 답변
-
-**📊 성과 리포트**
-- 스캔 결과의 수익률 추적
-
-**💡 팁**
-- Gemini API 키 입력 필수!
-- [무료 API 키 발급](https://aistudio.google.com/apikey)
-- 시장(KOSPI/KOSDAQ) 전환은 사이드바에서
-        """)
-
 
     menu = st.radio("메뉴", [
         "📡 스캔/검색",
