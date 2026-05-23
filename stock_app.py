@@ -50,16 +50,13 @@ def judge_per_by_sector(per, sector_name):
 
 
 # ── Gemini AI ──
+from google import genai
+from google.genai import types
+
 GEMINI_OK = False
 gemini_model = None
-try:                          
-    from google import genai
-    from google.genai import types
 
-    gemini_model = None
-    GEMINI_OK = False
-
-def init_gemini(api_key):    
+def init_gemini(api_key):
     global gemini_model, GEMINI_OK
     try:
         client = genai.Client(api_key=api_key)
