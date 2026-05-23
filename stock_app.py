@@ -2050,6 +2050,39 @@ with st.sidebar:
     st.sidebar.markdown(f"**🧠 Gemini AI:** {'🟢 연결됨' if GEMINI_OK else '⚪ 미연결'}")
     st.divider()
 
+    # ── 이용 가이드 ──
+    with st.sidebar.expander("📖 이용 가이드", expanded=False):
+        st.markdown("""
+**🚀 급등 예측 탐색기 사용법**
+
+**📡 스캔/검색**
+- 종목명 입력 → 개별 분석
+- 전체 스캔 → AI가 600개 종목 자동 분석
+- 점수 85점 이상만 결과에 표시
+
+**👀 내 종목 감시**
+- 관심 종목을 등록하고 실시간 모니터링
+- 목표가/손절가 알림 설정 가능
+
+**🪙 코인 선물**
+- 바이낸스 코인 선물 50개 자동 분석
+- 롱/숏 신호 + 가상매매 지원
+
+**🎯 투자 브리핑**
+- AI에게 자유롭게 질문
+- 종목명 포함 시 실시간 데이터 자동 수집
+- 실시간 뉴스/공시 기반 답변
+
+**📊 성과 리포트**
+- 스캔 결과의 수익률 추적
+
+**💡 팁**
+- Gemini API 키 입력 필수!
+- [무료 API 키 발급](https://aistudio.google.com/apikey)
+- 시장(KOSPI/KOSDAQ) 전환은 사이드바에서
+        """)
+
+
     menu = st.radio("메뉴", [
         "📡 스캔/검색",
         "👀 내 종목 감시",
@@ -3099,6 +3132,13 @@ def show_card(r, prefix, cfg, is_new_buy=False, is_new_sell=False, show_wl_btn=T
 # ─── 메인 ────────────────────────────────────────────
 
 if menu == "📡 스캔/검색":
+    st.header("📡 스캔/검색")
+    with st.expander("ℹ️ 사용법", expanded=False):
+        st.markdown("""
+- **개별 검색**: 종목명 입력 → 기술 분석 + AI 심층분석
+- **전체 스캔**: 1200개 종목 자동 분석 → 85점 이상만 표시
+- 결과 카드에서 📌 관심종목 등록 가능
+        """)    
     stocks = get_stocks(market)
     if st.session_state["scan_done"] and not st.session_state.get("scan_running", False):
         all_results = st.session_state["all_scan_results"]
@@ -3213,7 +3253,15 @@ if menu == "📡 스캔/검색":
             st.rerun()
 
 elif menu == "👀 내 종목 감시":
-    st.header("👀 내 종목 감시"); wl = load_wl()
+    st.header("👀 내 종목 감시")
+    with st.expander("ℹ️ 사용법", expanded=False):
+        st.markdown("""
+- 스캔/검색에서 ⭐ 버튼으로 관심종목 등록
+- 등록된 종목의 실시간 가격/신호 모니터링
+- 자동 갱신 켜면 60초마다 업데이트
+        """)
+
+    wl = load_wl()
     if not wl: st.info("감시 종목이 없습니다. 스캔/검색에서 ⭐ 버튼으로 추가하세요.")
     else:
         style_name = st.session_state.get("wl_style_side", list(STYLES.keys())[0]); cfg = STYLES[style_name]
@@ -3240,7 +3288,14 @@ elif menu == "👀 내 종목 감시":
             else: st.error(f"{name} 데이터 불러오기 실패")
 
 elif menu == "📊 성과 리포트":
-    st.header("📊 성과 리포트"); perf_data = load_perf_snapshot()
+    st.header("📊 성과 리포트")
+    with st.expander("ℹ️ 사용법", expanded=False):
+        st.markdown("""
+- 전체 스캔 후 자동 저장된 추천 종목의 수익률 추적
+- 과거 추천이 실제로 올랐는지 확인 가능
+        """)
+
+    perf_data = load_perf_snapshot()
     if not perf_data: st.info("아직 스캔 기록이 없습니다.")
     else:
         if st.button("📊 성과 분석 실행", type="primary", use_container_width=True):
@@ -3260,7 +3315,14 @@ elif menu == "📊 성과 리포트":
             else: st.warning("성과 데이터를 생성할 수 없습니다.")
 
 elif menu == "📜 스캔 기록":
-    st.header("📜 스캔 기록"); hist = load_history()
+    st.header("📜 스캔 기록")
+    with st.expander("ℹ️ 사용법", expanded=False):
+        st.markdown("""
+- 과거 전체 스캔 결과 기록 확인
+- 날짜별로 어떤 종목이 발견됐는지 조회
+        """)
+
+    hist = load_history()
     if not hist: st.info("스캔 기록이 없습니다.")
     else:
         if st.button("🗑️ 기록 전체 삭제"): clear_history(); st.rerun()
@@ -3282,6 +3344,12 @@ elif menu == "📜 스캔 기록":
 
 elif menu == "🔥 섹터 동반 상승":
     st.header("🔥 섹터 동반 상승 기록")
+    with st.expander("ℹ️ 사용법", expanded=False):
+        st.markdown("""
+- 같은 섹터/테마에서 여러 종목이 동시에 강세일 때 감지
+- 섹터 전체가 움직이는 큰 흐름 포착
+        """)
+
     SECTOR_FILE = "sector_history.json"
     if os.path.exists(SECTOR_FILE):
         with open(SECTOR_FILE, "r", encoding="utf-8") as f: sector_hist = json.load(f)
@@ -3296,7 +3364,15 @@ elif menu == "🔥 섹터 동반 상승":
                     for s in sg.get("stocks", []): st.write(f"• {s['name']} ({s['code']}) — {s['score']}점")
 
 elif menu == "🪙 코인 선물":
-    st.header("🪙 코인 선물 분석"); check_paper_tpsl()
+    st.header("🪙 코인 선물 분석")
+    with st.expander("ℹ️ 사용법", expanded=False):
+        st.markdown("""
+- 바이낸스 코인 선물 50개 자동 분석
+- 롱/숏 신호 + 펀딩비/롱숏비율/OI 데이터
+- 가상매매로 실전 연습 가능 (실제 돈 X)
+        """)
+
+    check_paper_tpsl()
     coin_tabs = st.tabs(["📊 전체 스캔", "🔍 개별 분석", "⭐ 관심종목", "💰 가상매매"])
     with coin_tabs[0]:
         st.subheader("📊 코인 선물 전체 스캔")
@@ -3409,6 +3485,12 @@ elif menu == "🪙 코인 선물":
 
 elif menu == "🚀 급등 사냥":
     st.markdown("## 🚀 급등 사냥")
+    with st.expander("ℹ️ 사용법", expanded=False):
+        st.markdown("""
+- 종목명 입력 → 과거 급등 패턴 분석
+- 거래량 폭증 + 가격 급등 구간 자동 감지
+        """)
+
     if not FDR_OK: st.error("FinanceDataReader 미설치")
     else:
         surge_query = st.text_input("종목명 또는 코드", key="surge_single_query")
@@ -3498,6 +3580,12 @@ elif menu == "💰 매매":
 
 elif menu == "🎯 투자 브리핑":
     st.header("🎯 AI 투자 브리핑")
+    with st.expander("ℹ️ 사용법", expanded=False):
+        st.markdown("""
+- 종목명 포함해서 질문하면 실시간 데이터 자동 수집
+- 실시간 뉴스/공시 기반 답변 (Google 검색 연동)
+- 예: "삼성전자 지금 사도 될까?", "오늘 시장 어때?"
+        """)
     st.caption("실시간 뉴스·공시 기반 AI 투자 상담")
 
     if not GEMINI_OK:
