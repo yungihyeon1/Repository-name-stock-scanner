@@ -3648,7 +3648,10 @@ elif menu == "🎯 투자 브리핑":
             with st.spinner("🎯 브리핑 생성 중..."):
                 try:
                     full_prompt = BRIEFING_PERSONA + "\n\n" + query
-                    response = gemini_model.generate_content(full_prompt)
+                    response = gemini_model.models.generate_content(
+                      model="gemini-2.5-flash",
+                      contents=full_prompt
+                    )
                     ai_text = response.text.strip()
                     st.session_state["briefing_history"].append({"role": "ai", "text": ai_text})
                 except Exception as e:
@@ -3710,7 +3713,13 @@ elif menu == "🎯 투자 브리핑":
                         else: context += f"AI: {msg['text']}\n"
 
                     full_prompt = BRIEFING_PERSONA + "\n\n이전 대화:\n" + context + "\n" + stock_data + "\n질문: " + user_input
-                    response = gemini_model.generate_content(full_prompt)
+                    response = gemini_model.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=full_prompt,
+                        config=types.GenerateContentConfig(
+                            tools=[types.Tool(google_search=types.GoogleSearch())]
+                        )
+                    )
                     ai_text = response.text.strip()
                     st.session_state["briefing_history"].append({"role": "ai", "text": ai_text})
                 except Exception as e:
