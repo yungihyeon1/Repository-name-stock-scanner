@@ -49,14 +49,17 @@ def judge_per_by_sector(per, sector_name):
         return "고평가", f"섹터평균({avg:.1f})의 {ratio:.0%}", -2
 
 
-# ── Gemini AI (서버용: 키를 사이드바에서 입력받음) ──
-from google import genai
-from google.genai import types
-
+# ── Gemini AI ──
 GEMINI_OK = False
 gemini_model = None
+try:                          
+    from google import genai
+    from google.genai import types
 
-def init_gemini(api_key):
+    gemini_model = None
+    GEMINI_OK = False
+
+def init_gemini(api_key):    
     global gemini_model, GEMINI_OK
     try:
         client = genai.Client(api_key=api_key)
